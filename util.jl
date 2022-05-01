@@ -151,7 +151,7 @@ function QuickUnion(n::Integer)
     QuickUnion(zeros(n),ones(n),pathbuffer)
 end
 
-function findroot(qu::QuickUnion,i)
+function findroot(qu::QuickUnion,i::Int32)::Int32
     parents = qu.parents
     pathbuffer = qu.pathbuffer
     parenti = parents[i]
@@ -176,12 +176,13 @@ function findroot(qu::QuickUnion,i)
         parents[pathi] = root
     end
     empty!(pathbuffer)
+    return root
 end
 
 """
 Return the size of the merged clusters, or 0 if no clusters were merged
 """
-function connect!(qu::QuickUnion,a,b)::Int32
+function connect!(qu::QuickUnion,a::Int32,b::Int32)::Int32
     roota = findroot(qu,a)
     rootb = findroot(qu,b)
     if roota == rootb
@@ -214,6 +215,10 @@ or nothing if the largest connected component is never large enough
 function critical_pt(N, L, R, maxdistancecutoff)::Union{Nothing,Float64}
     segs = generate_segments(N, R, L)
     nl = generate_neighborlist(segs, maxdistancecutoff)
+    @show length(nl)
+    if length(nl)+1 < 0.1*N
+        return nothing
+    end
     # sort nl from closest to farthest distance
     sort!(nl; by=(x->x.d2))
     max_cluster_size = 1
@@ -226,5 +231,6 @@ function critical_pt(N, L, R, maxdistancecutoff)::Union{Nothing,Float64}
             return √(neighbor.d2)
         end
     end
+    @show max_cluster_size
     return nothing
 end
