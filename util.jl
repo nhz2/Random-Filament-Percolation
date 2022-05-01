@@ -135,3 +135,96 @@ function check_neighborlist(nl::Vector{LinkableSegments}, linesegments::Array{SV
         end
     end
 end
+
+"""
+Percolation Algorithm from Lecture041922
+"""
+struct QuickUnion
+    parents::Vector{Int32}
+    sizes::Vector{Int32}
+    pathbuffer::Vector{Int32}
+end
+
+function QuickUnion(n::Integer)
+    pathbuffer = Vector{Int32}()
+    sizehint!(pathbuffer,n)
+    QuickUnion(zeros(n),ones(n),pathbuffer)
+end
+
+function findroot(qu::QuickUnion,i)
+    parents = qu.parents
+    pathbuffer = qu.pathbuffer
+    parenti = parents[i]
+    if !iszero(parenti)
+        while true
+            nextparent = parents[parenti]
+            if !iszero(nextparent)
+                push!(pathbuffer, i)
+                i = parenti
+                parenti = nextparent
+            else
+                # parenti is the root
+                i = parenti
+                break
+            end
+        end
+    end
+    root = i
+    # i is now root
+    # go through and set all parents to root
+    for pathi in pathbuffer
+        parents[pathi] = root
+    end
+    empty!(pathbuffer)
+end
+
+"""
+Return the size of the merged clusters, or 0 if no clusters were merged
+"""
+function connect!(qu::QuickUnion,a,b)::Int32
+    roota = findroot(qu,a)
+    rootb = findroot(qu,b)
+    if roota == rootb
+        return 0
+    end
+    #add pointer from smaller cluster to larger
+    parents = qu.parents
+    sizes = qu.sizes
+    sizea = sizes[roota]
+    sizeb = sizes[rootb]
+    if sizea < sizeb
+        parents[roota] = rootb
+        sizes[roota] = 0
+        sizes[rootb] = sizea + sizeb
+    else
+        parents[rootb] = roota
+        sizes[rootb] = 0
+        sizes[roota] = sizea + sizeb
+    end
+    return sizea + sizeb
+end
+
+
+
+"""
+Return the critical distancecutoff 
+where 10% of line segments are in the largest connected component, 
+or nothing if the largest connected component is never large enough
+"""
+function critical_pt(N, L, R, maxdistancecutoff)::Union{Nothing,Float64}
+    segs = generate_segments(N, R, L)
+    nl = generate_neighborlist(segs, maxdistancecutoff)
+    # sort nl from closest to farthest distance
+    sort!(nl; by=(x->x.d2))
+    max_cluster_size = 1
+    # create quick union struct
+    qu = QuickUnion(N)
+    for neighbor::LinkableSegments in nl
+        newsize = connect!(qu,neighbor.id1,neighbor.id2)
+        max_cluster_size = max(max_cluster_size,newsize)
+        if max_cluster_size ≥ 0.1*N
+            return √(neighbor.d2)
+        end
+    end
+    return nothing
+end
