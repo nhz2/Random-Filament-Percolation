@@ -258,8 +258,8 @@ function angle_based_bonding(N, L, R, distancecutoff, skip=1)
     g_perp = SimpleGraph(N)
     max_compsize_para = Int[]
     max_compsize_perp = Int[]
-    global_cluster_coeff_para = Int[]
-    global_cluster_coeff_perp = Int[]
+    global_cluster_coeff_para = Float64[]
+    global_cluster_coeff_perp = Float64[]
     links = Int[]
     for i in 1:nlinks
         para_n = para_nl[i]
