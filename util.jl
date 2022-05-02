@@ -240,10 +240,18 @@ end
 
 
 """
-Return a DataFrame with columns of links, max_compsize_para, max_compsize_perp, global_cluster_coeff_para, global_cluster_coeff_perp
+Return a DataFrame with columns of 
+    links,
+    max_compsize_rand,
+    max_compsize_para,
+    max_compsize_perp,
+    global_cluster_coeff_rand,
+    global_cluster_coeff_para,
+    global_cluster_coeff_perp,
 
 First create random line segments and a neighbor list
 Add links using two strategies.
+    0. rand: add pairs in random order
     1. para: add pairs of parallel or anti parallel line segments first.
     2. perp: add pairs of perpendicular line segments first.
 The angle is determined by the absolute value of the dot product of the two line segment direction vectors
@@ -253,31 +261,42 @@ function angle_based_bonding(N, L, R, distancecutoff, skip=1)
     nl = generate_neighborlist(segs, distancecutoff)
     perp_nl = sort(nl; by=(x->abs(x.cosθ)))
     para_nl = reverse(perp_nl)
+    rand_nl = shuffle(nl)
     nlinks = length(nl)
+    g_rand = SimpleGraph(N)
     g_para = SimpleGraph(N)
     g_perp = SimpleGraph(N)
+    max_compsize_rand = Int[]
     max_compsize_para = Int[]
     max_compsize_perp = Int[]
+    global_cluster_coeff_rand = Float64[]
     global_cluster_coeff_para = Float64[]
     global_cluster_coeff_perp = Float64[]
     links = Int[]
     for i in 1:nlinks
+        rand_n = rand_nl[i]
         para_n = para_nl[i]
         perp_n = perp_nl[i]
+        add_edge!(g_rand,rand_n.id1,rand_n.id2)
         add_edge!(g_para,para_n.id1,para_n.id2)
         add_edge!(g_perp,perp_n.id1,perp_n.id2)
         if iszero(mod(i,skip))
+            @info "$i of $nlinks"
             push!(links,i)
+            push!(max_compsize_rand, maximum(length,connected_components(g_rand)))
             push!(max_compsize_para, maximum(length,connected_components(g_para)))
             push!(max_compsize_perp, maximum(length,connected_components(g_perp)))
+            push!(global_cluster_coeff_rand, global_clustering_coefficient(g_rand))
             push!(global_cluster_coeff_para, global_clustering_coefficient(g_para))
             push!(global_cluster_coeff_perp, global_clustering_coefficient(g_perp))
         end
     end
     DataFrame(;
         links,
+        max_compsize_rand,
         max_compsize_para,
         max_compsize_perp,
+        global_cluster_coeff_rand,
         global_cluster_coeff_para,
         global_cluster_coeff_perp,
     ) 
