@@ -240,7 +240,7 @@ end
 
 
 """
-Return a DataFrame with columns of links, compsize_para, compsize_perp, global_cluster_coeff_para, global_cluster_coeff_perp
+Return a DataFrame with columns of links, max_compsize_para, max_compsize_perp, global_cluster_coeff_para, global_cluster_coeff_perp
 
 First create random line segments and a neighbor list
 Add links using two strategies.
@@ -248,8 +248,37 @@ Add links using two strategies.
     2. perp: add pairs of perpendicular line segments first.
 The angle is determined by the absolute value of the dot product of the two line segment direction vectors
 """
-function angle_based_bonding(N, L, R, distancecutoff)
+function angle_based_bonding(N, L, R, distancecutoff, skip=1)
     segs = generate_segments(N, R, L)
-    nl = generate_neighborlist(segs, maxdistancecutoff)
-    error("todo")
+    nl = generate_neighborlist(segs, distancecutoff)
+    perp_nl = sort(nl; by=(x->abs(x.cosθ)))
+    para_nl = reverse(perp_nl)
+    nlinks = length(nl)
+    g_para = SimpleGraph(N)
+    g_perp = SimpleGraph(N)
+    max_compsize_para = Int[]
+    max_compsize_perp = Int[]
+    global_cluster_coeff_para = Int[]
+    global_cluster_coeff_perp = Int[]
+    links = Int[]
+    for i in 1:nlinks
+        para_n = para_nl[i]
+        perp_n = perp_nl[i]
+        add_edge!(g_para,para_n.id1,para_n.id2)
+        add_edge!(g_perp,perp_n.id1,perp_n.id2)
+        if iszero(mod(i,skip))
+            push!(links,i)
+            push!(max_compsize_para, maximum(length,connected_components(g_para)))
+            push!(max_compsize_perp, maximum(length,connected_components(g_perp)))
+            push!(global_cluster_coeff_para, global_clustering_coefficient(g_para))
+            push!(global_cluster_coeff_perp, global_clustering_coefficient(g_perp))
+        end
+    end
+    DataFrame(;
+        links,
+        max_compsize_para,
+        max_compsize_perp,
+        global_cluster_coeff_para,
+        global_cluster_coeff_perp,
+    ) 
 end
