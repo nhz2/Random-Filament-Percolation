@@ -5,6 +5,8 @@ using StaticArrays
 using LinearAlgebra
 import CellListMap
 using Random
+using Graphs
+using DataFrames
 
 """
 Return a 2 by N array of 3D points, each column represents a line segment.
@@ -212,12 +214,12 @@ Return the critical distancecutoff
 where 10% of line segments are in the largest connected component, 
 or nothing if the largest connected component is never large enough
 """
-function critical_pt(N, L, R, maxdistancecutoff)::Union{Nothing,Float64}
+function critical_pt(N, L, R, maxdistancecutoff)::Float64
     segs = generate_segments(N, R, L)
     nl = generate_neighborlist(segs, maxdistancecutoff)
-    @show length(nl)
+    #@show length(nl)
     if length(nl)+1 < 0.1*N
-        return nothing
+        return NaN
     end
     # sort nl from closest to farthest distance
     sort!(nl; by=(x->x.d2))
@@ -231,6 +233,23 @@ function critical_pt(N, L, R, maxdistancecutoff)::Union{Nothing,Float64}
             return √(neighbor.d2)
         end
     end
-    @show max_cluster_size
-    return nothing
+    #@show max_cluster_size
+    return NaN
+end
+
+
+
+"""
+Return a DataFrame with columns of links, compsize_para, compsize_perp, global_cluster_coeff_para, global_cluster_coeff_perp
+
+First create random line segments and a neighbor list
+Add links using two strategies.
+    1. para: add pairs of parallel or anti parallel line segments first.
+    2. perp: add pairs of perpendicular line segments first.
+The angle is determined by the absolute value of the dot product of the two line segment direction vectors
+"""
+function angle_based_bonding(N, L, R, distancecutoff)
+    segs = generate_segments(N, R, L)
+    nl = generate_neighborlist(segs, maxdistancecutoff)
+    error("todo")
 end
