@@ -93,13 +93,13 @@ cam.near[] = cutdist
 # cam.near[] = 60.0f0
 # cam.far[] = 503.2f0
 
-
-# scene
-camxs = collect(range(start = -1.7R-cutdist, stop = R-cutdist-2L, step= 0.1))
-for camx in camxs
-    update_cam!(scene,[camx,0,0],[10R,0,0])
-    sleep(1/60)
-end
+update_cam!(scene,[-1.7R-cutdist,0,0],[10R,0,0])
+scene
+# camxs = collect(range(start = -1.7R-cutdist, stop = R-cutdist-2L, step= 0.1))
+# for camx in camxs
+#     update_cam!(scene,[camx,0,0],[10R,0,0])
+#     sleep(1/60)
+# end
 # frames = eachindex(camxs)
 # record(scene,"video.mkv",frames; framerate = 60,compression= 1) do i
 #     camx = camxs[i]
