@@ -12,4 +12,4 @@ L = 10.0
 distancecutoff = 1.0
 @time df=angle_based_bonding(N,L,R,distancecutoff,10)
 
-CSV.write("N:$N,L:$L,R:$R,dc:$distancecutoff.csv",df)
+CSV.write("N$N L$L R$R dc $distancecutoff.csv",df)

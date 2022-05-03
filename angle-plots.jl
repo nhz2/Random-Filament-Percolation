@@ -4,7 +4,7 @@ using LinearAlgebra
 using DataFrames
 import CSV
 
-df = DataFrame(CSV.File("N:100000,L:10.0,R:106.16233535767984,dc:1.0.csv"))
+df = DataFrame(CSV.File("N100000 L10 R106 dc1.csv"))
 #df = DataFrame(CSV.File("N:10000,L:10.0,R:49.27619103464619,dc:1.0.csv"))
 
 fig = Figure()
